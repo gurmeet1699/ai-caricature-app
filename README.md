@@ -22,15 +22,19 @@ Ensure you have [Node.js](https://nodejs.org/) installed on your machine.
 Extract the project folder or clone the repository, open your terminal inside the directory, and run:
 ```bash
 npm install
-
+```
+---
 
 ## Configure Environment Variables
 
 Create a file named .env in the root directory of the project. Add your secure keys to it:
 
 GEMINI_API_KEY=your_google_ai_studio_api_key
+
 EMAIL_USER=your_gmail_username@gmail.com
+
 EMAIL_PASS=your_16_character_gmail_app_password
+
 Note: For EMAIL_PASS, you must generate a 16-character App Password from your Google Account security settings. Do not use your regular account login password.
 
 ## Run the Application
@@ -38,5 +42,6 @@ Note: For EMAIL_PASS, you must generate a 16-character App Password from your Go
 Start your local Node.js backend server:
 ```bash
 node server.js
+```
 
 The server will start running at http://localhost:3000. Open this address in any modern web browser to access the application.
