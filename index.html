@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caricature Studio</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            background: #f0f2f5; 
+            padding: 10px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            width: 95vw;
+            max-width: 1600px;
+            min-height: 90vh;
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        
+        h1 { color: #1a73e8; margin-bottom: 5px; font-size: 2.5rem; }
+        h2 { color: #555; margin-top: 0; font-size: 1.5rem; line-height: 1.4; }
+
+        .consent-box {
+            background: #fff8e1;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #444;
+        }
+        .consent-scroll {
+            height: 120px;
+            overflow-y: scroll;
+            background: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        .consent-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .consent-actions label { font-weight: bold; cursor: pointer; }
+        .consent-email {
+            padding: 12px;
+            width: 80%;
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        .consent-email[readonly] {
+            background-color: #eeeeee;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        video { 
+            display: block; 
+            margin: 10px auto; 
+            width: 100%; 
+            max-width: 600px; 
+            border-radius: 8px; 
+            background: #eee; 
+        }
+        canvas { display: none; }
+
+        .comparison-frame { 
+            display: none; 
+            gap: 30px; 
+            margin-top: 20px; 
+            padding: 20px;
+            border: 2px solid #ddd; 
+            border-radius: 15px;
+            background: #fafafa;
+            width: 100%;
+            flex-grow: 1;
+            box-sizing: border-box;
+        }
+
+        .image-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 4px solid #1a73e8; 
+            padding: 20px;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .image-box h4 { margin-top: 0; margin-bottom: 15px; color: #333; font-size: 1.2rem; text-transform: uppercase; }
+
+        .img-container {
+            width: 100%; 
+            aspect-ratio: 1 / 1; 
+            position: relative;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .preview-img { 
+            width: 100%; 
+            height: 100%;
+            object-fit: cover;   
+            border-radius: 4px; 
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #placeholderText { color: #888; font-size: 1.2rem; z-index: 1; }
+
+        .controls { margin: 25px 0; display: flex; gap: 15px; justify-content: center; }
+        button { padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; background: #1a73e8; color: white; font-weight: bold; font-size: 1rem; }
+        button:hover { background: #1557b0; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Style Selection area */
+        .style-selector {
+            margin: 20px auto;
+            max-width: 400px;
+            width: 80%;
+        }
+        .style-selector label { font-weight: bold; display: block; margin-bottom: 8px; color: #555; }
+        .style-dropdown {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: white;
+        }
+
+        #genBtn { width: 100%; max-width: 600px; background: #34a853; margin: 10px auto; font-size: 1.2rem; padding: 20px; }
+        #genBtn:hover { background: #2d9249; }
+
+        .post-gen-actions { margin-top: 20px; display: none; }
+
+        /* GALLERY STYLING */
+        .gallery-section {
+            width: 95vw;
+            max-width: 1600px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none; 
+        }
+        .gallery-section h3 { color: #1a73e8; margin-top: 0; }
+        .gallery-list {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #1a73e8 #f0f2f5;
+        }
+        .gallery-item {
+            flex: 0 0 auto;
+            width: 150px;
+            height: 150px;
+            border: 3px solid #1a73e8;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #eee;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .gallery-item:hover { transform: scale(1.05); }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sikh Children Day 2026</h1>
+    <h2>
+        <span style="color: #1a73e8;">Sikh AI Club</span><br>
+        <span style="color: #FF0000;">🍌 Caricature Studio</span>
+    </h2>
+
+    <div class="consent-box" id="consentSection">
+        <h3>Permission & Privacy Consent</h3>
+        <div class="consent-scroll">
+            <p><strong>Terms of Use:</strong> This application utilizes the Google Gemini Nano Banana product to transform user-uploaded images into artistic caricatures. </p>
+            <p><strong>Minor Consent:</strong> This service is open to users of all ages, including children under the age of 18. By checking the box below, you certify that you are either the user (if over 18) or the parent/legal guardian of the minor user, and you grant express permission for the processing of the image.</p>
+            <p><strong>Data Privacy Guarantee:</strong> We value your privacy. The source image uploaded is used as a transient input for the generation process only. <strong>We certify that the source image is NOT stored on our servers and is NOT used for training purposes</strong> for any Google Gemini or Nano Banana AI models.</p>
+            <p><strong>Email Delivery:</strong> By providing your email, you agree that the final generated caricature will be sent <em>exclusively</em> to this address. This email address also serves as your digital signature of approval for these terms.</p>
+        </div>
+        <div class="consent-actions">
+            <input type="email" id="consentEmail" class="consent-email" placeholder="Enter parent/user email for approval & delivery" oninput="validateForm()">
+            <label>
+                <input type="checkbox" id="consentCheckbox" onclick="handleCheckboxClick()"> I have reviewed and approve the Permission Document.
+            </label>
+        </div>
+    </div>
+    
+    <video id="video" autoplay playsinline></video>
+
+    <div id="comparisonFrame" class="comparison-frame">
+        <div class="image-box">
+            <h4>Original Photo</h4>
+            <div class="img-container">
+                <img id="userPreview" class="preview-img" alt="Original">
+            </div>
+        </div>
+        <div class="image-box">
+            <h4>AI Caricature</h4>
+            <div class="img-container">
+                <span id="placeholderText">Please wait...</span>
+                <img id="caricatureResult" class="preview-img" style="display:none;">
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="resetAndStartCamera()">Start Camera</button>
+        <button onclick="takePhoto()">Snap Photo</button>
+        <input type="file" id="fileInput" hidden onchange="handleFile(event)">
+        <button onclick="document.getElementById('fileInput').click()">Upload File</button>
+    </div>
+
+    <div class="style-selector">
+        <label for="styleDropdown">Choose Your Style:</label>
+        <select id="styleDropdown" class="style-dropdown">
+            <option value="3d">✨ 3D Animation (Default)</option>
+            <option value="sketch">✏️ Classic Pencil Sketch</option>
+            <option value="superhero">🦸 Superhero Comic</option>
+        </select>
+    </div>
+
+    <button id="genBtn" disabled onclick="generateCaricature()">Generate Caricature</button>
+
+    <div class="post-gen-actions" id="postGenActions">
+        <button id="emailBtn" onclick="sendEmailToSignedAddress()" style="background: #673ab7;">Email Result to Signed Address</button>
+    </div>
+</div>
+
+<div class="gallery-section" id="gallerySection">
+    <h3>Session Gallery 📸</h3>
+    <div class="gallery-list" id="galleryList">
+        </div>
+</div>
+
+<script>
+    let video = document.getElementById('video');
+    let canvas = document.createElement('canvas');
+    let userPreview = document.getElementById('userPreview');
+    let caricatureResult = document.getElementById('caricatureResult');
+    let placeholderText = document.getElementById('placeholderText');
+    let comparisonFrame = document.getElementById('comparisonFrame');
+    let consentCheckbox = document.getElementById('consentCheckbox');
+    let consentEmail = document.getElementById('consentEmail');
+    let genBtn = document.getElementById('genBtn');
+    let postGenActions = document.getElementById('postGenActions');
+    let gallerySection = document.getElementById('gallerySection');
+    let galleryList = document.getElementById('galleryList');
+    let styleDropdown = document.getElementById('styleDropdown');
+    let base64Image = null;
+
+    function handleCheckboxClick() {
+        if (!consentCheckbox.checked) {
+            resetConsentState(); 
+        }
+        validateForm();
+    }
+
+    function resetConsentState() {
+        consentCheckbox.checked = false;
+        consentCheckbox.disabled = false;
+        consentEmail.value = "";
+        consentEmail.readOnly = false;
+    }
+
+    function resetAndStartCamera() {
+        consentCheckbox.checked = false;
+        consentCheckbox.disabled = false;
+        consentEmail.readOnly = false;
+        startCamera();
+    }
+
+    function validateForm() {
+        const isEmailValid = consentEmail.value.includes('@');
+        const isChecked = consentCheckbox.checked;
+        const hasImage = base64Image !== null;
+
+        if (isChecked) {
+            consentEmail.readOnly = true;
+        } else {
+            consentEmail.readOnly = false;
+        }
+
+        genBtn.disabled = !(isEmailValid && isChecked && hasImage);
+    }
+
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            comparisonFrame.style.display = 'none'; 
+            postGenActions.style.display = 'none';
+            validateForm();
+        } catch (err) {
+            alert("Camera access denied.");
+        }
+    }
+
+    function takePhoto() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        base64Image = canvas.toDataURL('image/jpeg');
+        displayPreview(base64Image);
+    }
+
+    function handleFile(e) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            base64Image = reader.result;
+            displayPreview(base64Image);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+
+    function displayPreview(src) {
+        userPreview.src = src;
+        video.style.display = 'none'; 
+        comparisonFrame.style.display = 'flex'; 
+        validateForm();
+        
+        caricatureResult.style.display = "none";
+        caricatureResult.src = ""; 
+        placeholderText.style.display = "block";
+    }
+
+    async function generateCaricature() {
+        genBtn.innerText = "Processing (Privacy Protected)...";
+        genBtn.disabled = true;
+        consentCheckbox.disabled = true;
+
+        const selectedStyle = styleDropdown.value;
+
+        try {
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    image: base64Image,
+                    style: selectedStyle // Sending style to server
+                })
+            });
+            const data = await response.json();
+            if(data.caricatureUrl) {
+                caricatureResult.src = data.caricatureUrl;
+                caricatureResult.style.display = "block";
+                placeholderText.style.display = "none";
+                postGenActions.style.display = 'block';
+
+                addToGallery(data.caricatureUrl);
+            }
+        } catch (e) { 
+            alert("Error generating caricature."); 
+            consentCheckbox.disabled = false;
+        }
+        genBtn.innerText = "Generate Caricature";
+        validateForm();
+    }
+
+    function addToGallery(imgSrc) {
+        gallerySection.style.display = "block";
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.innerHTML = `<img src="${imgSrc}" alt="Gallery Item">`;
+        item.onclick = () => {
+            caricatureResult.src = imgSrc;
+            caricatureResult.style.display = "block";
+            placeholderText.style.display = "none";
+        };
+        galleryList.prepend(item);
+    }
+
+    async function sendEmailToSignedAddress() {
+        const email = consentEmail.value; 
+        const imgUrl = caricatureResult.src;
+        const btn = document.getElementById('emailBtn');
+        const originalText = btn.innerText;
+        btn.innerText = "Sending to " + email + "...";
+        btn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, imgUrl })
+            });
+            
+            if (response.ok) {
+                alert("Your caricature has been emailed successfully!");
+                resetConsentState();
+                validateForm();
+                postGenActions.style.display = 'none';
+            } else {
+                throw new Error();
+            }
+        } catch (e) {
+            alert("Failed to send email.");
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
